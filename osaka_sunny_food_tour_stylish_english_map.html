@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Osaka Sunny Food Tour Map</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+:root {
+  --bg:#0f1117;
+  --gold:#f59e0b;
+  --pink:#fb7185;
+  --mint:#2dd4bf;
+  --blue:#60a5fa;
+  --violet:#a78bfa;
+  --panel:rgba(255,255,255,.93);
+  --line:rgba(255,255,255,.18);
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",sans-serif;
+  color:white;
+  background:
+    radial-gradient(circle at 8% 6%,rgba(251,113,133,.28),transparent 30%),
+    radial-gradient(circle at 92% 10%,rgba(245,158,11,.24),transparent 32%),
+    radial-gradient(circle at 72% 92%,rgba(45,212,191,.18),transparent 28%),
+    linear-gradient(135deg,#0f1117,#171827 52%,#101828);
+}
+.hero{
+  padding:24px 18px 16px;
+  border-bottom:1px solid var(--line);
+}
+.eyebrow{
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  color:rgba(255,255,255,.62);
+  font-size:11px;
+  margin-bottom:8px;
+}
+h1{
+  margin:0;
+  font-size:clamp(26px,6vw,46px);
+  line-height:1.05;
+  font-weight:880;
+}
+.lead{
+  margin:10px 0 16px;
+  max-width:820px;
+  color:rgba(255,255,255,.78);
+  line-height:1.55;
+  font-size:14px;
+}
+.toolbar{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+button{
+  border:1px solid rgba(255,255,255,.28);
+  color:white;
+  background:rgba(255,255,255,.09);
+  padding:10px 13px;
+  border-radius:999px;
+  font-weight:800;
+  font-size:13px;
+  cursor:pointer;
+  backdrop-filter:blur(12px);
+}
+button.active{
+  background:white;
+  color:#111827;
+  border-color:white;
+}
+.layout{
+  display:grid;
+  grid-template-columns:minmax(0,1.45fr) minmax(330px,.75fr);
+  gap:14px;
+  padding:14px;
+}
+#map{
+  min-height:68vh;
+  height:calc(100vh - 205px);
+  border-radius:24px;
+  overflow:hidden;
+  border:1px solid var(--line);
+  box-shadow:0 24px 70px rgba(0,0,0,.35);
+}
+.side{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  max-height:calc(100vh - 205px);
+  overflow:auto;
+  padding-right:2px;
+}
+.recommend{
+  background:linear-gradient(135deg,rgba(255,255,255,.18),rgba(255,255,255,.08));
+  border:1px solid var(--line);
+  border-radius:24px;
+  padding:16px;
+  backdrop-filter:blur(20px);
+}
+.recommend h2{
+  margin:0 0 6px;
+  font-size:17px;
+}
+.recommend .meta{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin:9px 0 10px;
+}
+.pill{
+  background:rgba(255,255,255,.12);
+  border:1px solid rgba(255,255,255,.16);
+  padding:7px 9px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:800;
+}
+.recommend p{
+  margin:0;
+  color:rgba(255,255,255,.76);
+  font-size:13px;
+  line-height:1.55;
+}
+.route{
+  margin-top:10px;
+  display:grid;
+  gap:8px;
+}
+.route div{
+  background:rgba(255,255,255,.09);
+  border:1px solid rgba(255,255,255,.13);
+  border-radius:14px;
+  padding:9px 10px;
+  font-size:13px;
+  line-height:1.45;
+}
+.cards{
+  display:grid;
+  gap:10px;
+}
+.card{
+  background:var(--panel);
+  color:#111827;
+  border-radius:20px;
+  padding:14px;
+  box-shadow:0 12px 32px rgba(0,0,0,.18);
+  border:1px solid rgba(255,255,255,.2);
+}
+.topline{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  align-items:flex-start;
+}
+.card h3{
+  margin:0;
+  font-size:16px;
+}
+.tag{
+  flex:0 0 auto;
+  font-size:11px;
+  font-weight:850;
+  padding:5px 8px;
+  border-radius:999px;
+  color:white;
+  background:#111827;
+}
+.desc{
+  margin:8px 0 10px;
+  color:#374151;
+  line-height:1.5;
+  font-size:13px;
+}
+.mini{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  margin-bottom:10px;
+}
+.mini div{
+  background:#f3f4f6;
+  padding:8px;
+  border-radius:12px;
+  font-size:12px;
+  color:#374151;
+}
+.mini b{
+  display:block;
+  color:#111827;
+  margin-bottom:2px;
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:.04em;
+}
+.tip{
+  font-size:12.5px;
+  line-height:1.5;
+  color:#4b5563;
+  border-left:3px solid #d1d5db;
+  padding-left:9px;
+  margin-bottom:10px;
+}
+.card a{
+  display:inline-flex;
+  text-decoration:none;
+  color:#111827;
+  background:#e5e7eb;
+  padding:8px 10px;
+  border-radius:999px;
+  font-weight:850;
+  font-size:12px;
+}
+.leaflet-popup-content-wrapper{border-radius:18px}
+.popup-title{font-weight:850;font-size:15px}
+.popup-meta{color:#4b5563;line-height:1.5;margin-top:6px}
+.popup-link{display:inline-block;margin-top:8px;color:#0b57d0;font-weight:750}
+@media(max-width:880px){
+  .layout{grid-template-columns:1fr;padding:10px}
+  #map{height:58vh;min-height:440px;border-radius:20px}
+  .side{max-height:none;overflow:visible}
+  .hero{padding:18px 14px 12px}
+}
+</style>
+</head>
+<body>
+<section class="hero">
+  <div class="eyebrow">Osaka Sunny Food Travel Map</div>
+  <h1>Osaka Gourmet Routes<br>by Food Mood</h1>
+  <p class="lead">A stylish English map for five sunny-day food routes in Osaka. Switch plans, tap pins, compare time and budget, and open each spot in Google Maps.</p>
+  <div class="toolbar" id="toolbar">
+    <button class="active" data-plan="all">All Plans</button>
+    <button data-plan="plan1">Classic Street Food</button>
+    <button data-plan="plan2">Cafe & Dessert</button>
+    <button data-plan="plan3">Seafood Lover’s</button>
+    <button data-plan="plan4">Korean Food</button>
+    <button data-plan="plan5">Luxury Gourmet</button>
+  </div>
+</section>
+<main class="layout">
+  <div id="map"></div>
+  <aside class="side">
+    <section class="recommend">
+      <h2 id="recTitle">All Osaka Food Routes</h2>
+      <div class="meta">
+        <span class="pill" id="recTime">5 plans</span>
+        <span class="pill" id="recBudget">Sunny-day food map</span>
+      </div>
+      <p id="recText">Use the full map to compare the food areas: Namba/Dotonbori for classic Osaka, Nakazakicho/Umeda for cafés, Tsuruhashi for Korean food, and Sakai is not included in this food version.</p>
+      <div class="route" id="routeBox"></div>
+    </section>
+    <section class="cards" id="cards"></section>
+  </aside>
+</main>
+<script>
+const plans = [{"id": "plan1", "title": "Sunny Plan 1", "subtitle": "Osaka Classic Street Food Tour", "total_time": "Approx. 4 hours", "total_budget": "Approx. ¥7,800", "mood": "Iconic, lively, casual, very Osaka", "how": "Start with market snacks, then move into Dotonbori for Osaka’s signature comfort foods: okonomiyaki, takoyaki, and kushikatsu.", "spots": [{"name": "Kuromon Ichiba Market", "lat": 34.665239, "lng": 135.506666, "vibe": "A lively market where you can enjoy Osaka-style street food while walking around.", "time": "Approx. 1.5 hours", "budget": "Approx. ¥3,000", "tip": "Best for seafood skewers, grilled items, fruit, and quick bites.", "google": "Kuromon Ichiba Market Osaka"}, {"name": "Mizuno", "lat": 34.668739, "lng": 135.503175, "vibe": "A long-established, popular okonomiyaki restaurant often known for lines.", "time": "Approx. 1 hour", "budget": "Approx. ¥2,000", "tip": "Go before peak meal time if you want to reduce waiting.", "google": "Mizuno okonomiyaki Osaka"}, {"name": "Creo-Ru Dotonbori", "lat": 34.668757, "lng": 135.502514, "vibe": "A casual takoyaki stop where you can enjoy food while taking in the Dotonbori atmosphere.", "time": "Approx. 30 minutes", "budget": "Approx. ¥800", "tip": "Good for a quick snack and photo stop around Dotonbori.", "google": "Creo-Ru Dotonbori Osaka"}, {"name": "Kushikatsu Daruma Dotonbori", "lat": 34.668793, "lng": 135.501329, "vibe": "A classic spot to enjoy one of Osaka’s most famous local dishes: kushikatsu.", "time": "Approx. 1 hour", "budget": "Approx. ¥2,000", "tip": "Order a few different skewers and keep the visit light rather than too heavy.", "google": "Kushikatsu Daruma Dotonbori Osaka"}]}, {"id": "plan2", "title": "Sunny Plan 2", "subtitle": "Cafe & Dessert Tour", "total_time": "Approx. 5 hours", "total_budget": "Approx. ¥4,700", "mood": "Stylish, calm, retro, photogenic", "how": "Begin with a retro neighborhood walk, then move through coffee, roll cake, and matcha sweets for a soft Osaka café day.", "spots": [{"name": "Nakazakicho", "lat": 34.706137, "lng": 135.505986, "vibe": "A relaxed area with retro streets, small shops, and stylish hidden cafés.", "time": "Approx. 2 hours", "budget": "Approx. ¥500 for walking; food and drinks separate", "tip": "Best enjoyed without rushing. Explore side streets and small cafés.", "google": "Nakazakicho Osaka"}, {"name": "PATHFINDER XNOBU", "lat": 34.704782, "lng": 135.502692, "vibe": "A stylish café known for specialty coffee and a clean, modern atmosphere.", "time": "Approx. 1 hour", "budget": "Approx. ¥1,200", "tip": "Use this as the main coffee stop of the route.", "google": "PATHFINDER XNOBU Osaka"}, {"name": "Salon de Mon Cher Dojima Main Store", "lat": 34.696741, "lng": 135.496873, "vibe": "An elegant dessert shop famous for Dojima Roll, with a calm and refined mood.", "time": "Approx. 1 hour", "budget": "Approx. ¥1,500", "tip": "Good as the premium dessert stop after coffee.", "google": "Salon de Mon Cher Dojima Main Store Osaka"}, {"name": "MACCHA HOUSE Matcha Kan Shinsaibashi", "lat": 34.672147, "lng": 135.501088, "vibe": "A popular Japanese-modern café where you can enjoy authentic matcha sweets.", "time": "Approx. 1 hour", "budget": "Approx. ¥1,500", "tip": "End with matcha parfait or tea-based sweets for a Japanese-style finish.", "google": "MACCHA HOUSE Matcha Kan Shinsaibashi Osaka"}]}, {"id": "plan3", "title": "Sunny Plan 3", "subtitle": "Seafood Lover’s Tour", "total_time": "Approx. 4.5 hours", "total_budget": "Approx. ¥11,500", "mood": "Fresh, local, seafood-focused, premium", "how": "Start early at the wholesale-market sushi area, then compare market street seafood with a more formal crab restaurant in Dotonbori.", "spots": [{"name": "Endo Sushi Central Market", "lat": 34.682869, "lng": 135.470479, "vibe": "A long-established sushi restaurant popular with locals, known for fresh seafood at the central market.", "time": "Approx. 1 hour", "budget": "Approx. ¥3,000", "tip": "Best earlier in the day. This is the serious seafood start.", "google": "Endo Sushi Central Market Osaka"}, {"name": "Kuromon Ichiba Market", "lat": 34.665239, "lng": 135.506666, "vibe": "A lively market where you can walk around and try fresh seafood such as scallops, sea urchin, and grilled items.", "time": "Approx. 1.5 hours", "budget": "Approx. ¥2,500", "tip": "Share small dishes so you can try more types of seafood.", "google": "Kuromon Ichiba Market Osaka"}, {"name": "Kani Doraku Dotonbori Main Branch", "lat": 34.668744, "lng": 135.501168, "vibe": "A representative Osaka crab restaurant, famous for its giant moving crab sign.", "time": "Approx. 2 hours", "budget": "Approx. ¥6,000", "tip": "Use this as the sit-down meal and main event of the seafood route.", "google": "Kani Doraku Dotonbori Main Branch Osaka"}]}, {"id": "plan4", "title": "Sunny Plan 4", "subtitle": "Korean Food Tour", "total_time": "Approx. 4.5 hours", "total_budget": "Approx. ¥7,000", "mood": "Energetic, street-style, Korean trend, casual", "how": "Explore Tsuruhashi like a mini Korean trip: shopping streets, yakiniku, Korean-style café, and colorful sweets.", "spots": [{"name": "Tsuruhashi", "lat": 34.665457, "lng": 135.530667, "vibe": "A neighborhood filled with Korean food, cosmetics, shops, and the feeling of a quick Korea trip.", "time": "Approx. 1 hour", "budget": "Approx. ¥500 for walking", "tip": "Walk through the market streets before eating so you can choose snacks or cosmetics later.", "google": "Tsuruhashi Osaka Korean Town"}, {"name": "Yakiniku Sora Tsuruhashi", "lat": 34.665077, "lng": 135.531321, "vibe": "A popular yakiniku restaurant where you can enjoy authentic wagyu-style grilled meat.", "time": "Approx. 1.5 hours", "budget": "Approx. ¥4,000", "tip": "Make this the main meal. Go with friends if possible so you can share more cuts.", "google": "Yakiniku Sora Tsuruhashi Osaka"}, {"name": "OurLog Coffee Roasters", "lat": 34.664901, "lng": 135.529374, "vibe": "A café with Korean-style interior design and a stylish, photogenic mood.", "time": "Approx. 1 hour", "budget": "Approx. ¥1,500", "tip": "Use this as the cool-down stop after yakiniku.", "google": "OurLog Coffee Roasters Osaka"}, {"name": "Korean Sweets Shop", "lat": 34.665752, "lng": 135.531705, "vibe": "A colorful dessert stop for croffles, fat macarons, and photo-friendly sweets.", "time": "Approx. 1 hour", "budget": "Approx. ¥1,000", "tip": "Choose sweets based on what looks best that day around Tsuruhashi.", "google": "Tsuruhashi Korean sweets croffle macaron Osaka"}]}, {"id": "plan5", "title": "Sunny Plan 5", "subtitle": "Luxury Osaka Gourmet", "total_time": "Approx. 5 hours", "total_budget": "Approx. ¥8,000", "mood": "Refined, Umeda-based, comfortable, grown-up", "how": "Enjoy Osaka comfort food in a more polished way: oden, okonomiyaki, elegant cake, then department-store food shopping.", "spots": [{"name": "Hanakujira Honten", "lat": 34.697284, "lng": 135.486842, "vibe": "A long-established oden restaurant with a calm and local atmosphere.", "time": "Approx. 1 hour", "budget": "Approx. ¥2,000", "tip": "A warm, local-style start. Better for people who like subtle Japanese flavors.", "google": "Hanakujira Honten Osaka"}, {"name": "Kiji Umeda", "lat": 34.702721, "lng": 135.495969, "vibe": "A popular okonomiyaki restaurant loved by locals.", "time": "Approx. 1.5 hours", "budget": "Approx. ¥2,000", "tip": "Use this as the main Osaka-style meal in Umeda.", "google": "Kiji Umeda Osaka"}, {"name": "HARBS Daimaru Umeda", "lat": 34.701319, "lng": 135.496982, "vibe": "An elegant café known for seasonal fruit cakes.", "time": "Approx. 1 hour", "budget": "Approx. ¥2,000", "tip": "Best for a refined dessert break after okonomiyaki.", "google": "HARBS Daimaru Umeda Osaka"}, {"name": "Hanshin Department Store Umeda Main Store", "lat": 34.700765, "lng": 135.497985, "vibe": "A department-store basement packed with premium sweets, Osaka souvenirs, and gourmet food.", "time": "Approx. 1.5 hours", "budget": "Approx. ¥2,000 for shopping or light bites", "tip": "End here to buy souvenirs or compare Osaka food culture in one place.", "google": "Hanshin Department Store Umeda Main Store Osaka"}]}];
+const allSpots = [{"name": "Kuromon Ichiba Market", "lat": 34.665239, "lng": 135.506666, "vibe": "A lively market where you can enjoy Osaka-style street food while walking around.", "time": "Approx. 1.5 hours", "budget": "Approx. ¥3,000", "tip": "Best for seafood skewers, grilled items, fruit, and quick bites.", "google": "Kuromon Ichiba Market Osaka", "plans": ["plan1", "plan3"]}, {"name": "Mizuno", "lat": 34.668739, "lng": 135.503175, "vibe": "A long-established, popular okonomiyaki restaurant often known for lines.", "time": "Approx. 1 hour", "budget": "Approx. ¥2,000", "tip": "Go before peak meal time if you want to reduce waiting.", "google": "Mizuno okonomiyaki Osaka", "plans": ["plan1"]}, {"name": "Creo-Ru Dotonbori", "lat": 34.668757, "lng": 135.502514, "vibe": "A casual takoyaki stop where you can enjoy food while taking in the Dotonbori atmosphere.", "time": "Approx. 30 minutes", "budget": "Approx. ¥800", "tip": "Good for a quick snack and photo stop around Dotonbori.", "google": "Creo-Ru Dotonbori Osaka", "plans": ["plan1"]}, {"name": "Kushikatsu Daruma Dotonbori", "lat": 34.668793, "lng": 135.501329, "vibe": "A classic spot to enjoy one of Osaka’s most famous local dishes: kushikatsu.", "time": "Approx. 1 hour", "budget": "Approx. ¥2,000", "tip": "Order a few different skewers and keep the visit light rather than too heavy.", "google": "Kushikatsu Daruma Dotonbori Osaka", "plans": ["plan1"]}, {"name": "Nakazakicho", "lat": 34.706137, "lng": 135.505986, "vibe": "A relaxed area with retro streets, small shops, and stylish hidden cafés.", "time": "Approx. 2 hours", "budget": "Approx. ¥500 for walking; food and drinks separate", "tip": "Best enjoyed without rushing. Explore side streets and small cafés.", "google": "Nakazakicho Osaka", "plans": ["plan2"]}, {"name": "PATHFINDER XNOBU", "lat": 34.704782, "lng": 135.502692, "vibe": "A stylish café known for specialty coffee and a clean, modern atmosphere.", "time": "Approx. 1 hour", "budget": "Approx. ¥1,200", "tip": "Use this as the main coffee stop of the route.", "google": "PATHFINDER XNOBU Osaka", "plans": ["plan2"]}, {"name": "Salon de Mon Cher Dojima Main Store", "lat": 34.696741, "lng": 135.496873, "vibe": "An elegant dessert shop famous for Dojima Roll, with a calm and refined mood.", "time": "Approx. 1 hour", "budget": "Approx. ¥1,500", "tip": "Good as the premium dessert stop after coffee.", "google": "Salon de Mon Cher Dojima Main Store Osaka", "plans": ["plan2"]}, {"name": "MACCHA HOUSE Matcha Kan Shinsaibashi", "lat": 34.672147, "lng": 135.501088, "vibe": "A popular Japanese-modern café where you can enjoy authentic matcha sweets.", "time": "Approx. 1 hour", "budget": "Approx. ¥1,500", "tip": "End with matcha parfait or tea-based sweets for a Japanese-style finish.", "google": "MACCHA HOUSE Matcha Kan Shinsaibashi Osaka", "plans": ["plan2"]}, {"name": "Endo Sushi Central Market", "lat": 34.682869, "lng": 135.470479, "vibe": "A long-established sushi restaurant popular with locals, known for fresh seafood at the central market.", "time": "Approx. 1 hour", "budget": "Approx. ¥3,000", "tip": "Best earlier in the day. This is the serious seafood start.", "google": "Endo Sushi Central Market Osaka", "plans": ["plan3"]}, {"name": "Kani Doraku Dotonbori Main Branch", "lat": 34.668744, "lng": 135.501168, "vibe": "A representative Osaka crab restaurant, famous for its giant moving crab sign.", "time": "Approx. 2 hours", "budget": "Approx. ¥6,000", "tip": "Use this as the sit-down meal and main event of the seafood route.", "google": "Kani Doraku Dotonbori Main Branch Osaka", "plans": ["plan3"]}, {"name": "Tsuruhashi", "lat": 34.665457, "lng": 135.530667, "vibe": "A neighborhood filled with Korean food, cosmetics, shops, and the feeling of a quick Korea trip.", "time": "Approx. 1 hour", "budget": "Approx. ¥500 for walking", "tip": "Walk through the market streets before eating so you can choose snacks or cosmetics later.", "google": "Tsuruhashi Osaka Korean Town", "plans": ["plan4"]}, {"name": "Yakiniku Sora Tsuruhashi", "lat": 34.665077, "lng": 135.531321, "vibe": "A popular yakiniku restaurant where you can enjoy authentic wagyu-style grilled meat.", "time": "Approx. 1.5 hours", "budget": "Approx. ¥4,000", "tip": "Make this the main meal. Go with friends if possible so you can share more cuts.", "google": "Yakiniku Sora Tsuruhashi Osaka", "plans": ["plan4"]}, {"name": "OurLog Coffee Roasters", "lat": 34.664901, "lng": 135.529374, "vibe": "A café with Korean-style interior design and a stylish, photogenic mood.", "time": "Approx. 1 hour", "budget": "Approx. ¥1,500", "tip": "Use this as the cool-down stop after yakiniku.", "google": "OurLog Coffee Roasters Osaka", "plans": ["plan4"]}, {"name": "Korean Sweets Shop", "lat": 34.665752, "lng": 135.531705, "vibe": "A colorful dessert stop for croffles, fat macarons, and photo-friendly sweets.", "time": "Approx. 1 hour", "budget": "Approx. ¥1,000", "tip": "Choose sweets based on what looks best that day around Tsuruhashi.", "google": "Tsuruhashi Korean sweets croffle macaron Osaka", "plans": ["plan4"]}, {"name": "Hanakujira Honten", "lat": 34.697284, "lng": 135.486842, "vibe": "A long-established oden restaurant with a calm and local atmosphere.", "time": "Approx. 1 hour", "budget": "Approx. ¥2,000", "tip": "A warm, local-style start. Better for people who like subtle Japanese flavors.", "google": "Hanakujira Honten Osaka", "plans": ["plan5"]}, {"name": "Kiji Umeda", "lat": 34.702721, "lng": 135.495969, "vibe": "A popular okonomiyaki restaurant loved by locals.", "time": "Approx. 1.5 hours", "budget": "Approx. ¥2,000", "tip": "Use this as the main Osaka-style meal in Umeda.", "google": "Kiji Umeda Osaka", "plans": ["plan5"]}, {"name": "HARBS Daimaru Umeda", "lat": 34.701319, "lng": 135.496982, "vibe": "An elegant café known for seasonal fruit cakes.", "time": "Approx. 1 hour", "budget": "Approx. ¥2,000", "tip": "Best for a refined dessert break after okonomiyaki.", "google": "HARBS Daimaru Umeda Osaka", "plans": ["plan5"]}, {"name": "Hanshin Department Store Umeda Main Store", "lat": 34.700765, "lng": 135.497985, "vibe": "A department-store basement packed with premium sweets, Osaka souvenirs, and gourmet food.", "time": "Approx. 1.5 hours", "budget": "Approx. ¥2,000 for shopping or light bites", "tip": "End here to buy souvenirs or compare Osaka food culture in one place.", "google": "Hanshin Department Store Umeda Main Store Osaka", "plans": ["plan5"]}];
+let currentPlan = "all";
+let markers = [];
+const colors = {
+  plan1:"#f59e0b",
+  plan2:"#fb7185",
+  plan3:"#38bdf8",
+  plan4:"#22c55e",
+  plan5:"#a78bfa",
+  all:"#ffffff"
+};
+const map = L.map('map', {scrollWheelZoom:true});
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom:19,
+  attribution:'&copy; OpenStreetMap contributors'
+}).addTo(map);
+
+function selectedPlanObj() {
+  return plans.find(p => p.id === currentPlan);
+}
+function visibleSpots() {
+  if (currentPlan === "all") return allSpots;
+  const p = selectedPlanObj();
+  return p ? p.spots.map(s => { return {...s, plans:[p.id]} }) : allSpots;
+}
+function colorFor(s) {
+  if (currentPlan !== "all") return colors[currentPlan];
+  return colors[s.plans?.[0]] || "#f59e0b";
+}
+function iconFor(s, index) {
+  const color = colorFor(s);
+  return L.divIcon({
+    className:'',
+    html:`<div style="
+      width:28px;height:28px;border-radius:50%;
+      background:${color};
+      color:#111827;
+      border:3px solid white;
+      display:flex;align-items:center;justify-content:center;
+      font-size:12px;font-weight:900;
+      box-shadow:0 4px 16px rgba(0,0,0,.45);
+    ">${index+1}</div>`,
+    iconSize:[28,28],
+    iconAnchor:[14,14]
+  });
+}
+function renderMap() {
+  markers.forEach(m => map.removeLayer(m));
+  markers = [];
+  const bounds = [];
+  visibleSpots().forEach((s, i) => {
+    bounds.push([s.lat, s.lng]);
+    const google = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(s.google)}`;
+    const marker = L.marker([s.lat, s.lng], {icon: iconFor(s, i)})
+      .addTo(map)
+      .bindPopup(`
+        <div class="popup-title">${s.name}</div>
+        <div class="popup-meta">
+          ${s.vibe}<br><br>
+          Time: ${s.time}<br>
+          Budget: ${s.budget}<br>
+          <span style="display:block;margin-top:6px;"><b>Enjoying tip:</b> ${s.tip}</span>
+        </div>
+        <a class="popup-link" href="${google}" target="_blank">Open in Google Maps</a>
+      `);
+    markers.push(marker);
+  });
+  if (bounds.length) map.fitBounds(bounds, {padding:[36,36]});
+}
+function renderCards() {
+  const cards = document.getElementById("cards");
+  cards.innerHTML = "";
+  visibleSpots().forEach((s, i) => {
+    const google = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(s.google)}`;
+    const card = document.createElement("article");
+    card.className = "card";
+    card.innerHTML = `
+      <div class="topline">
+        <h3>${i+1}. ${s.name}</h3>
+        <span class="tag">Food Stop</span>
+      </div>
+      <p class="desc">${s.vibe}</p>
+      <div class="mini">
+        <div><b>Time</b>${s.time}</div>
+        <div><b>Budget</b>${s.budget}</div>
+      </div>
+      <div class="tip"><b>How to enjoy:</b> ${s.tip}</div>
+      <a href="${google}" target="_blank">Open in Google Maps</a>
+    `;
+    cards.appendChild(card);
+  });
+}
+function renderRecommendation() {
+  const title = document.getElementById("recTitle");
+  const time = document.getElementById("recTime");
+  const budget = document.getElementById("recBudget");
+  const text = document.getElementById("recText");
+  const routeBox = document.getElementById("routeBox");
+  routeBox.innerHTML = "";
+
+  if (currentPlan === "all") {
+    title.textContent = "All Osaka Food Routes";
+    time.textContent = "5 plans";
+    budget.textContent = "Choose by mood";
+    text.textContent = "Use the full map to compare the food areas: Namba/Dotonbori for classic Osaka, Nakazakicho/Umeda for cafés, Tsuruhashi for Korean food, and Umeda/Fukushima for a more refined gourmet route.";
+    plans.forEach(p => {
+      const div = document.createElement("div");
+      div.textContent = `${p.title}: ${p.subtitle} / ${p.total_time} / ${p.total_budget}`;
+      routeBox.appendChild(div);
+    });
+  } else {
+    const p = selectedPlanObj();
+    title.textContent = `${p.title}: ${p.subtitle}`;
+    time.textContent = p.total_time;
+    budget.textContent = p.total_budget;
+    text.textContent = `${p.mood}. ${p.how}`;
+    p.spots.forEach((s, i) => {
+      const div = document.createElement("div");
+      div.textContent = `${i+1}. ${s.name} → ${s.time} / ${s.budget}`;
+      routeBox.appendChild(div);
+    });
+  }
+}
+function renderAll() {
+  renderMap();
+  renderCards();
+  renderRecommendation();
+}
+document.querySelectorAll("button[data-plan]").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll("button[data-plan]").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    currentPlan = btn.dataset.plan;
+    renderAll();
+  });
+});
+renderAll();
+</script>
+</body>
+</html>
